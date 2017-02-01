@@ -4,7 +4,7 @@ def example(self,args,opts):
   '''Macro handlers will be passed three argument
   1. refernce to the MacroProcessor object. this can be used to access helper method provided by the MacroProcessor class.
   2. list of arguments. 
-  3. option string. this will be a single string that the function is responsible for parsing. the MacroProcessor.parse_option_str() method can be used
+  3. option string. this will be a single string that the function is responsible for parsing. the MacroProcessor.parse_options_str() method can be used
      to parse a list of key="value" style options into a dict. for example 'a="A", b="B"' would get parsed to { 'a' : 'A', 'b' : 'B' }.
   '''
 
@@ -39,14 +39,14 @@ def mathimg(self,args,opts):
       return "$"+args[0]+"$"
 
 
-  options = parse_options_str( opts )
+  options = self.parse_options_str( opts )
 
   size = None
   if len(options) > 0:
-    if 'size' in options[0]:
-      size = options[0]['size']
+    if 'size' in options:
+      size = options['size']
     else:
-      size = '{width}x{height}'.format( width=options[0].get('width','W'), height=options[0].get('height','H') )
+      size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
         
     if size:
       ifn = "eq-%d_%s.png"%(self.mathimg_num,size)
@@ -89,14 +89,14 @@ def scriptimg(self,args,opts):
       return "ERROR: could not create image"
 
 
-  options = parse_options_str( opts )
+  options = self.parse_options_str( opts )
 
   size = None
   if len(options) > 0:
-    if 'size' in options[0]:
-      size = options[0]['size']
+    if 'size' in options:
+      size = options['size']
     else:
-      size = '{width}x{height}'.format( width=options[0].get('width','W'), height=options[0].get('height','H') )
+      size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
         
     if size:
       ifn = "sc-%d_%s.png"%(self.scriptimg_num,size)
@@ -109,7 +109,7 @@ def scriptimg(self,args,opts):
 def image(self,args,opts):
   '''Insert a (possibly remote) image.'''
   fn = args[0]
-  options = parse_options_str( opts )
+  options = self.parse_options_str( opts )
 
   url = urlparse.urlparse(fn)
   if url.scheme == '':
@@ -128,10 +128,10 @@ def image(self,args,opts):
   # get size from options
   size = None
   if len(options) > 0:
-    if 'size' in options[0]:
-      size = options[0]['size']
+    if 'size' in options:
+      size = options['size']
     else:
-      size = '{width}x{height}'.format( width=options[0].get('width','W'), height=options[0].get('height','H') )
+      size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
         
     if size:
       n,e = os.path.splitext(lfn)
@@ -167,10 +167,10 @@ def write(self,args,opts):
     return None
 
   fn = None
-  options = parse_options_str( opts )
+  options = self.parse_options_str( opts )
   if len(options) > 0:
-    if 'filename' in options[0]:
-      fn = options[0]['filename']
+    if 'filename' in options:
+      fn = options['filename']
 
   if fn is None:
     print "\tWARNING: no filename found in write macro."
