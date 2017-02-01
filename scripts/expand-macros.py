@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 from macro_expander import *
+import argparse
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Processes macros in text.')

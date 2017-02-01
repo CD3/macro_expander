@@ -1,7 +1,7 @@
 '''Preprocess a markdown file by doing macro expansion an other things.'''
 
 # standard modules
-import sys, os, re, subprocess, argparse, tempfile, urlparse, urllib, inspect
+import sys, inspect
 import pprint
 
 # non-standard modules

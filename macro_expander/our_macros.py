@@ -1,4 +1,4 @@
-import subprocess, tempfile
+import os, re, subprocess, tempfile, urlparse, urllib
 
 def example(self,args,opts):
   '''Macro handlers will be passed three argument
