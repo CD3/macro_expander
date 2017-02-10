@@ -98,13 +98,16 @@ class MacroProcessor(object):
 
 
     key = Word(alphas, alphanums+'_')
-    val = QuotedString(quoteChar='"')
-    opt = key("key") + "=" + val("val")
+    val = QuotedString(quoteChar='"') | QuotedString(quoteChar="'")
+    opt = key("key") + Optional("=" + val("val"))
 
 
     options = dict()
     for o in opt.searchString( opts_str ):
-      options[o['key']] = o['val']
+      if 'val' in o:
+        options[o['key']] = o['val']
+      else:
+        options[o['key']] = True
 
     return options
 
