@@ -158,6 +158,14 @@ def shell(self,args,opts):
     fp.seek(0)
     stdout = fp.read()
 
+  options = self.parse_options_str( opts )
+  for f in ["lstrip", "rstrip", "strip"]:
+    if f in options:
+      if isinstance(options[f], str):
+        stdout = getattr(stdout,f)(options[f])
+      else:
+        stdout = getattr(stdout,f)()
+
   return stdout
 
 def write(self,args,opts):

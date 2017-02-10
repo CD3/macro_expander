@@ -56,5 +56,17 @@ def test_macros():
   assert proc.process("\example{trash}").strip() == "Processed by example handler."
   sys.modules['user_macros'] = tmp
 
+def test_latex():
+  proc = macro_expander.MacroProcessor()
 
+  assert proc.process(r"\frac{1}{2}") == r"\frac{1}{2}"
+  assert proc.process(r"\frac{{1}}{{2}}") == r"\frac{{1}}{{2}}"
 
+def test_shell():
+  proc = macro_expander.MacroProcessor()
+
+  assert proc.process("\shell{echo Hello World}") == "Hello World\n"
+  assert proc.process("\shell{echo;echo Hello World}") == "\nHello World\n"
+  assert proc.process("\shell[lstrip]{echo;echo Hello World}") == "Hello World\n"
+  assert proc.process("\shell[rstrip]{echo;echo Hello World}") == "\nHello World"
+  assert proc.process("\shell[strip]{echo;echo Hello World}") == "Hello World"
