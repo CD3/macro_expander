@@ -1,4 +1,4 @@
-import os, re, subprocess, tempfile, urlparse, urllib
+import os, re, subprocess, tempfile, urlparse, urllib, base64
 
 def example(self,args,opts):
   '''Macro handlers will be passed three argument
@@ -22,8 +22,8 @@ def mathimg(self,args,opts):
   self.mathimg_num += 1
 
   extra_opts=""
-  if len(opts) > 1:
-    extra_opts = opts[1]
+  if 'tex2im_opts' in opts:
+    extra_opts = opts['tex2im_opts']
 
 
   ifn = "eq-%d.png"%(self.mathimg_num)
@@ -41,20 +41,23 @@ def mathimg(self,args,opts):
 
   options = self.parse_options_str( opts )
 
-  size = None
-  if len(options) > 0:
-    if 'size' in options:
-      size = options['size']
-    else:
-      size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
-        
-    if size:
-      ifn = "eq-%d_%s.png"%(self.mathimg_num,size)
+  # size = None
+  # if 'size' in options:
+    # size = options['size']
+  # else:
+    # size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
+      
+  # if size:
+    # ifn = "eq-%d_%s.png"%(self.mathimg_num,size)
 
-  # now replace the macro with markdown that points at the image
-  md = '![](./%s)'%ifn
+  if 'o' in options:
+    options['output'] = options['o']
+  if 'output' in options:
+    output = options['output']
+  else:
+    output= "markdown"
 
-  return md
+  return _img(ifn,output=output)
 
 def scriptimg(self,args,opts):
   '''Create an image from a script and include it.'''
@@ -101,10 +104,7 @@ def scriptimg(self,args,opts):
     if size:
       ifn = "sc-%d_%s.png"%(self.scriptimg_num,size)
 
-  # now replace the macro with markdown that points at the image
-  md = '![](./%s)'%ifn
-
-  return md
+  return _img(ifn)
 
 def image(self,args,opts):
   '''Insert a (possibly remote) image.'''
@@ -145,7 +145,7 @@ def image(self,args,opts):
       lf.write(f.read())
       f.close()
 
-  return '![](./%s)'%lfn
+  return _img(ifn)
 
 includegraphics = image
 
@@ -190,3 +190,39 @@ def write(self,args,opts):
 
   return ""
 
+def _img( filename, output="markdown", fmt=None, opts="" ):
+  '''Return code to insert an image into document for various formats.'''
+
+  if output == "markdown":
+    return '![](./%s)'%filename
+
+  if output == "latex":
+    return r'\includegraphics{./%s}'%filename
+
+  if output == "html":
+    url = urlparse.urlparse(filename)
+    if url.scheme == '':
+      url = url._replace(scheme='file')
+
+    if url.scheme == 'file':
+      filename = os.path.join( os.getcwd(), filename)
+      filename = os.path.normpath(filename)
+      if not os.path.isfile( filename ):
+        raise RuntimeError("ERROR: could not find image file '%s'." % filename )
+      url = url._replace(path=filename)
+
+
+    url = url.geturl()
+
+    if fmt is None:
+      fmt = os.path.splitext( filename )[-1][1:] # use extension for file format
+
+    # we use urllib here so we can support specifying remote images
+    f = urllib.urlopen(url)
+    code  = base64.b64encode(f.read())
+    f.close()
+    text  = r'''<img src="data:image/{fmt};base64,{code}" {opts}>'''.format(fmt=fmt,code=code,opts=opts)
+
+    return text
+
+  return None

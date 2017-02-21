@@ -70,3 +70,17 @@ def test_shell():
   assert proc.process("\shell[lstrip]{echo;echo Hello World}") == "Hello World\n"
   assert proc.process("\shell[rstrip]{echo;echo Hello World}") == "\nHello World"
   assert proc.process("\shell[strip]{echo;echo Hello World}") == "Hello World"
+
+def test_write():
+  proc = macro_expander.MacroProcessor()
+
+  assert proc.process('\write[filename="write_macro.out"]{test}') == ""
+  with open("write_macro.out") as f:
+    assert f.read() == "test"
+
+def test_img():
+
+  proc = macro_expander.MacroProcessor()
+
+  assert macro_expander.our_macros._img("file.png",output="markdown") == "![](./file.png)"
+  assert macro_expander.our_macros._img("file.png",output="latex") == "\includegraphics{./file.png}"
