@@ -21,9 +21,11 @@ def mathimg(self,args,opts):
     self.mathimg_num = 0
   self.mathimg_num += 1
 
+  options = self.parse_options_str( opts )
+
   extra_opts=""
-  if 'tex2im_opts' in opts:
-    extra_opts = opts['tex2im_opts']
+  if 'tex2im_opts' in options:
+    extra_opts = options['tex2im_opts']
 
 
   ifn = "eq-%d.png"%(self.mathimg_num)
@@ -39,16 +41,6 @@ def mathimg(self,args,opts):
       return "$"+args[0]+"$"
 
 
-  options = self.parse_options_str( opts )
-
-  # size = None
-  # if 'size' in options:
-    # size = options['size']
-  # else:
-    # size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
-      
-  # if size:
-    # ifn = "eq-%d_%s.png"%(self.mathimg_num,size)
 
   if 'o' in options:
     options['output'] = options['o']
