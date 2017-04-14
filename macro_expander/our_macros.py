@@ -1,4 +1,4 @@
-import os, re, subprocess, tempfile, urlparse, urllib, base64
+import os, re, subprocess, tempfile, urlparse, urllib, base64, hashlib
 
 def example(self,args,opts):
   '''Macro handlers will be passed three argument
@@ -16,10 +16,6 @@ def mathimg(self,args,opts):
   if len(args) < 1: # don't do anything if no argument was given
     return None
 
-  # create an image file of the equation using our tex2im
-  if not hasattr(self,'mathimg_num'):
-    self.mathimg_num = 0
-  self.mathimg_num += 1
 
   options = self.parse_options_str( opts )
 
@@ -28,18 +24,62 @@ def mathimg(self,args,opts):
     extra_opts = options['tex2im_opts']
 
 
-  ifn = "eq-%d.png"%(self.mathimg_num)
-  ofn = "eq-%d.log"%(self.mathimg_num)
-  cmd = "tex2im -o %s %s '%s' "%(ifn,extra_opts,args[0])
-  print "creating image of equation with:'"+cmd+"'"
-  with open(ofn,'w') as f:
+  cmd = "tex2im -o %%s %s -- '%s' "%(extra_opts,args[0])
+  print '%s'%cmd
+  # create a hash of the command used to create the image to use as the image
+  # name. this way we can tell if the image has already been created before.
+  hash = hashlib.sha1(cmd).hexdigest()
+  ofn = "mathimg-%s-image.png"%hash
+  lfn = "mathimg-%s-image.log"%hash
+  cmd = cmd%ofn
+  print "creating image with:'"+cmd+"'"
+  if os.path.exists(ofn):
+    print "\tskipping because '"+ofn+"' already exists. please delete it if you want to force a rebuild."
+  else:
+    with open(lfn,'w') as f:
+      status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
+      if status != 0:
+        print "\tWARNING: there was a problem running tex2im."
+        print "\tWARNING: command output was left in %s"%(lfn)
+        print "\tWARNING: replacing with $...$, which may not work..."
+        return "$"+args[0]+"$"
+
+  if 'o' in options:
+    options['output'] = options['o']
+  if 'output' in options:
+    output = options['output']
+  else:
+    output= "markdown"
+
+  return _img(ofn,output=output)
+
+def scriptimg(self,args,opts):
+  '''Create an image by running a script and include it.'''
+
+  if len(args) < 1: # don't do anything if no argument was given
+    return None
+
+  options = self.parse_options_str( opts )
+
+
+  text = re.sub( "^\s*#!","#!",args[0] ) # strip off any whitespace before the shebang
+  hash = hashlib.sha1(text).hexdigest()
+
+  sfn = "scriptimg-%s-script.txt"%hash
+  ofn = "scriptimg-%s-image.png"%hash
+  lfn = "scriptimg-%s-image.log"%hash
+
+  with open(sfn,'w') as f:
+    f.write(text)
+
+  cmd = "chmod +x %s; ./%s; mv out.png %s"%(sfn,sfn,ofn)
+  print "creating image from script with:'"+cmd+"'"
+  with open(lfn,'w') as f:
     status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
     if status != 0:
-      print "\tWARNING: there was a problem running tex2im."
-      print "\tWARNING: command output was left in %s"%(ofn)
-      print "\tWARNING: replacing with $...$, which may not work..."
-      return "$"+args[0]+"$"
-
+      print "\tWARNING: there was a problem running script."
+      print "\tWARNING: the script and its output were left in %s and %s"%(sfn,lfn)
+      return "ERROR: could not create image"
 
 
   if 'o' in options:
@@ -49,54 +89,7 @@ def mathimg(self,args,opts):
   else:
     output= "markdown"
 
-  return _img(ifn,output=output)
-
-def scriptimg(self,args,opts):
-  '''Create an image from a script and include it.'''
-
-  if len(args) < 1: # don't do anything if no argument was given
-    return None
-
-  # create an image file of the equation using our tex2im
-  if not hasattr(self,'scriptimg_num'):
-    self.scriptimg_num = 0
-  self.scriptimg_num += 1
-
-  extra_opts=""
-  if len(opts) > 1:
-    extra_opts = opts[1]
-
-
-  sfn = "sc-%d.txt"%(self.scriptimg_num)
-  ifn = "sc-%d.png"%(self.scriptimg_num)
-  ofn = "sc-%d.log"%(self.scriptimg_num)
-
-  with open(sfn,'w') as f:
-    f.write(re.sub( "^\s*#","#",args[0] ) )
-
-  cmd = "chmod +x %s; ./%s; mv out.png %s"%(sfn,sfn,ifn)
-  print "creating image from script with:'"+cmd+"'"
-  with open(ofn,'w') as f:
-    status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
-    if status != 0:
-      print "\tWARNING: there was a problem running script."
-      print "\tWARNING: the script and its output were left in %s and %s"%(sfn,ofn)
-      return "ERROR: could not create image"
-
-
-  options = self.parse_options_str( opts )
-
-  size = None
-  if len(options) > 0:
-    if 'size' in options:
-      size = options['size']
-    else:
-      size = '{width}x{height}'.format( width=options.get('width','W'), height=options.get('height','H') )
-        
-    if size:
-      ifn = "sc-%d_%s.png"%(self.scriptimg_num,size)
-
-  return _img(ifn)
+  return _img(ofn,output=output)
 
 def image(self,args,opts):
   '''Insert a (possibly remote) image.'''
