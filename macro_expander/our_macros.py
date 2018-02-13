@@ -175,6 +175,57 @@ def write(self,args,opts):
 
   return ""
 
+def file(self,args,opts ):
+  '''Return lines from a file.'''
+
+  options = self.parse_options_str( opts )
+
+  lines = list()
+  for arg in args:
+    with open(arg) as f:
+      lines += f.readlines()
+  if 'filter' in options:
+    pattern = options['filter'].strip("/")
+    lines = filter( lambda line : re.search(pattern,line), lines )
+
+  b = 1
+  e = len(lines)
+
+  if 'b' in options:
+    try:
+      b = int(options['b'])
+    except:
+      pattern = options['b'].strip("/")
+      for i in range(len(lines)):
+        if re.search(pattern,lines[i]):
+          b = i+1 # b is 1 offset, not zero offset
+          break
+
+
+  if 'e' in options:
+    try:
+      e = int(options['e'])
+    except:
+      pattern = options['e'].strip("/")
+      for i in range(b-1,len(lines)):
+        if re.search(pattern,lines[i]):
+          e = i+1
+          break
+
+
+  elif 'n' in options:
+    e = b+int(options['n'])-1
+
+
+
+  return "".join( lines[b-1:e] )
+
+
+
+
+
+
+
 def _img( filename, output="markdown", fmt=None, opts="" ):
   '''Return code to insert an image into document for various formats.'''
 
@@ -211,3 +262,4 @@ def _img( filename, output="markdown", fmt=None, opts="" ):
     return text
 
   return None
+

@@ -84,3 +84,25 @@ def test_img():
 
   assert macro_expander.our_macros._img("file.png",output="markdown") == "![](./file.png)"
   assert macro_expander.our_macros._img("file.png",output="latex") == "\includegraphics{./file.png}"
+
+def test_file():
+  proc = macro_expander.MacroProcessor()
+
+  with open("file1.txt","w") as f:
+    f.write("line one\n")
+    f.write("line two\n")
+    f.write("line three\n")
+    f.write("line four\n")
+
+
+  assert proc.process(r"\file{file1.txt}") == "line one\nline two\nline three\nline four\n"
+  assert proc.process(r"\file[b=1,e=1]{file1.txt}") == "line one\n"
+  assert proc.process(r"\file[b=2,e=3]{file1.txt}") == "line two\nline three\n"
+  assert proc.process(r"\file[b=2,n=1]{file1.txt}") == "line two\n"
+  assert proc.process(r"\file[b=2,n=3]{file1.txt}") == "line two\nline three\nline four\n"
+  assert proc.process(r"\file[b=/two/,n=2]{file1.txt}") == "line two\nline three\n"
+  assert proc.process(r"\file[b=/two/,e=/two/]{file1.txt}") == "line two\n"
+  assert proc.process(r"\file[b=/two/,e=/three/]{file1.txt}") == "line two\nline three\n"
+  assert proc.process(r"\file[filter=/two/]{file1.txt}") == "line two\n"
+  assert proc.process(r"\file[filter=/(two|four)/]{file1.txt}") == "line two\nline four\n"
+
