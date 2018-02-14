@@ -107,4 +107,4 @@ def test_file():
   assert proc.process(r"\file[filter=/(two|four)/]{file1.txt}") == "line two\nline four\n"
   assert proc.process(r"\file[transform=/two/three/]{file1.txt}") == "line one\nline three\nline three\nline four\n"
   assert proc.process(r"\file[b=2,e=3,transform=/two/three/]{file1.txt}") == "line three\nline three\n"
-
+  assert proc.process(r"\file[transform=/two/three/,transform=/line/text/]{file1.txt}") == "text one\ntext three\ntext three\ntext four\n"

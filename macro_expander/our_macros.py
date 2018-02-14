@@ -189,11 +189,14 @@ def file(self,args,opts ):
     pattern = options['filter'].strip("/")
     lines = filter( lambda line : re.search(pattern,line), lines )
 
-  print options
   if 'transform' in options:
-    char = options['transform'][0]
-    pattern,replace = options['transform'].strip(char).split(char)
-    lines = [ re.sub(pattern,replace,line) for line in lines ]
+    transforms = options['transform']
+    if not isinstance(transforms,list):
+      transforms = [transforms]
+    for transform in transforms:
+      char = transform[0]
+      pattern,replace = transform.strip(char).split(char)
+      lines = [ re.sub(pattern,replace,line) for line in lines ]
 
   b = 1
   e = len(lines)
