@@ -184,9 +184,16 @@ def file(self,args,opts ):
   for arg in args:
     with open(arg) as f:
       lines += f.readlines()
+
   if 'filter' in options:
     pattern = options['filter'].strip("/")
     lines = filter( lambda line : re.search(pattern,line), lines )
+
+  print options
+  if 'transform' in options:
+    char = options['transform'][0]
+    pattern,replace = options['transform'].strip(char).split(char)
+    lines = [ re.sub(pattern,replace,line) for line in lines ]
 
   b = 1
   e = len(lines)
