@@ -186,7 +186,9 @@ def file(self,args,opts ):
       lines += f.readlines()
 
   if 'filter' in options:
-    pattern = options['filter'].strip("/")
+    filt = options['filter']
+    char = filt[0]
+    pattern = filt.strip(char)
     lines = filter( lambda line : re.search(pattern,line), lines )
 
   if 'transform' in options:
@@ -195,7 +197,9 @@ def file(self,args,opts ):
       transforms = [transforms]
     for transform in transforms:
       char = transform[0]
-      pattern,replace = transform.strip(char).split(char)
+      toks = transform.strip(char).split(char)
+      pattern = toks[0]
+      replace = toks[1] if len(toks) > 1 else ""
       lines = [ re.sub(pattern,replace,line) for line in lines ]
 
   b = 1
