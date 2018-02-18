@@ -97,7 +97,7 @@ class MacroProcessor(object):
 
 
     key = Word(alphas, alphanums+'_')
-    val = QuotedString(quoteChar='"') | QuotedString(quoteChar="'") | Word(alphanums+"/|()_")
+    val = QuotedString(quoteChar='"') | QuotedString(quoteChar="'") | Word(alphanums+"/|()_.:;!^$#*-=+")
     opt = key("key") + Optional("=" + val("val"))
 
 
