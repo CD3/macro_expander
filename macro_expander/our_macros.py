@@ -251,7 +251,7 @@ def _filter_and_transform_lines( lines, options ):
 
     if 'lpattern' in spec:
       pattern = spec['lpattern']
-      for i in range(len(lines)):
+      for i in range(b-1,len(lines)):
         if re.search(pattern,lines[i]):
           e = i+1
           break
