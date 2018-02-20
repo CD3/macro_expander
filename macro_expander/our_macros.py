@@ -1,4 +1,5 @@
 import os, re, subprocess, tempfile, urlparse, urllib, base64, hashlib
+from pyparsing import *
 
 def example(self,args,opts):
   '''Macro handlers will be passed three argument
@@ -137,13 +138,16 @@ includegraphics = image
 
 def shell(self,args,opts):
   '''Run shell command and return output.'''
+  # run command, send output to a file, and read it into a list
   with tempfile.TemporaryFile() as fp:
     cmd = ';'.join(args)
     subprocess.call( cmd, shell=True, stdout=fp )
     fp.seek(0)
-    stdout = fp.read()
+    lines = fp.readlines()
 
   options = self.parse_options_str( opts )
+  stdout = "".join( _filter_and_transform_lines(lines,options) )
+
   for f in ["lstrip", "rstrip", "strip"]:
     if f in options:
       if isinstance(options[f], str):
@@ -185,6 +189,19 @@ def file(self,args,opts ):
     with open(arg) as f:
       lines += f.readlines()
 
+  return "".join( _filter_and_transform_lines(lines,options) )
+
+
+
+
+
+def _filter_and_transform_lines( lines, options ):
+
+  line_number = Word(nums)
+  line_offset = Word(nums+"+-")
+  line_pattern = QuotedString(quoteChar='/') | QuotedString(quoteChar='|')
+  line_spec = (line_number("lnumber") | line_pattern("lpattern")) + Optional( Word("+-")("osign") + line_offset("offset") )
+
   if 'filter' in options:
     filt = options['filter']
     char = filt[0]
@@ -206,25 +223,46 @@ def file(self,args,opts ):
   e = len(lines)
 
   if 'b' in options:
-    try:
-      b = int(options['b'])
-    except:
-      pattern = options['b'].strip("/")
+    spec = line_spec.parseString( options['b'] )
+    if 'lnumber' in spec:
+      b = int(spec['lnumber'])
+
+    if 'lpattern' in spec:
+      pattern = spec['lpattern']
       for i in range(len(lines)):
         if re.search(pattern,lines[i]):
           b = i+1 # b is 1 offset, not zero offset
           break
 
+    offset = 0
+    if 'offset' in spec:
+      offset = int(spec['offset'])
+      if spec['osign'] == '-':
+        offset *= -1
+
+    b += offset
+
+
 
   if 'e' in options:
-    try:
-      e = int(options['e'])
-    except:
-      pattern = options['e'].strip("/")
-      for i in range(b-1,len(lines)):
+    spec = line_spec.parseString( options['e'] )
+    if 'lnumber' in spec:
+      e = int(spec['lnumber'])
+
+    if 'lpattern' in spec:
+      pattern = spec['lpattern']
+      for i in range(len(lines)):
         if re.search(pattern,lines[i]):
           e = i+1
           break
+
+    offset = 0
+    if 'offset' in spec:
+      offset = int(spec['offset'])
+      if spec['osign'] == '-':
+        offset *= -1
+
+    e += offset
 
 
   elif 'n' in options:
@@ -232,10 +270,7 @@ def file(self,args,opts ):
 
 
 
-  return "".join( lines[b-1:e] )
-
-
-
+  return lines[b-1:e]
 
 
 
