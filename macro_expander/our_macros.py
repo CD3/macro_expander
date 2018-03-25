@@ -303,7 +303,7 @@ def _img( filename, output="markdown", fmt=None, opts="" ):
 
     # we use urllib here so we can support specifying remote images
     f = urllib.request.urlopen(url)
-    code  = base64.b64encode(f.read())
+    code  = base64.b64encode(f.read()).decode('utf-8')
     f.close()
     text  = r'''<img src="data:image/{fmt};base64,{code}" {opts}>'''.format(fmt=fmt,code=code,opts=opts)
 
