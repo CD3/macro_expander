@@ -21,5 +21,4 @@ setup(
     url='https://github.com/CD3/macro_expander',
     author='C.D. Clark III',
     packages=["macro_expander"],
-    z
 )

@@ -16,7 +16,7 @@ try:
 except:
   pass
 
-import our_macros
+from . import our_macros 
 
 
 class MacroProcessor(object):

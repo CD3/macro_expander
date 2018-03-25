@@ -2,3 +2,8 @@
 *.pyc
 .*.swp
 __pycache__/
+build/
+dist/
+env/
+.pytest_cache/
+macro_expander.egg-info/
