@@ -111,3 +111,12 @@ def test_file():
   assert proc.process(r"\file[b=2,e=3,transform=/two/three/]{file1.txt}") == "line three\nline three\n"
   assert proc.process(r"\file[transform=/two/three/,transform=/line/text/]{file1.txt}") == "text one\ntext three\ntext three\ntext four\n"
   assert proc.process(r"\file[transform=/line//]{file1.txt}") == " one\n two\n three\n four\n"
+
+def test_mathimg_macro():
+  proc = macro_expander.MacroProcessor()
+  proc.process(r"\mathimg{\nabla \rho = 0}")
+
+def test_shell_macro():
+  proc = macro_expander.MacroProcessor()
+  proc.process(r"\shell{ls}")
+

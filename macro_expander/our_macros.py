@@ -29,7 +29,7 @@ def mathimg(self,args,opts):
   print('%s'%cmd)
   # create a hash of the command used to create the image to use as the image
   # name. this way we can tell if the image has already been created before.
-  hash = hashlib.sha1(cmd).hexdigest()
+  hash = hashlib.sha1(cmd.encode('utf-8')).hexdigest()
   ofn = "mathimg-%s-image.png"%hash
   lfn = "mathimg-%s-image.log"%hash
   cmd = cmd%ofn
