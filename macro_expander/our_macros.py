@@ -1,4 +1,4 @@
-import os, re, subprocess, tempfile, urlparse, urllib, base64, hashlib
+import os, re, subprocess, tempfile, urllib.parse, urllib.request, urllib.parse, urllib.error, base64, hashlib
 from pyparsing import *
 
 def example(self,args,opts):
@@ -26,23 +26,23 @@ def mathimg(self,args,opts):
 
 
   cmd = "tex2im -o %%s %s -- '%s' "%(extra_opts,args[0])
-  print '%s'%cmd
+  print('%s'%cmd)
   # create a hash of the command used to create the image to use as the image
   # name. this way we can tell if the image has already been created before.
   hash = hashlib.sha1(cmd).hexdigest()
   ofn = "mathimg-%s-image.png"%hash
   lfn = "mathimg-%s-image.log"%hash
   cmd = cmd%ofn
-  print "creating image with:'"+cmd+"'"
+  print("creating image with:'"+cmd+"'")
   if os.path.exists(ofn):
-    print "\tskipping because '"+ofn+"' already exists. please delete it if you want to force a rebuild."
+    print("\tskipping because '"+ofn+"' already exists. please delete it if you want to force a rebuild.")
   else:
     with open(lfn,'w') as f:
       status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
       if status != 0:
-        print "\tWARNING: there was a problem running tex2im."
-        print "\tWARNING: command output was left in %s"%(lfn)
-        print "\tWARNING: replacing with $...$, which may not work..."
+        print("\tWARNING: there was a problem running tex2im.")
+        print("\tWARNING: command output was left in %s"%(lfn))
+        print("\tWARNING: replacing with $...$, which may not work...")
         return "$"+args[0]+"$"
 
   if 'o' in options:
@@ -74,12 +74,12 @@ def scriptimg(self,args,opts):
     f.write(text)
 
   cmd = "chmod +x %s; ./%s; mv out.png %s"%(sfn,sfn,ofn)
-  print "creating image from script with:'"+cmd+"'"
+  print("creating image from script with:'"+cmd+"'")
   with open(lfn,'w') as f:
     status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
     if status != 0:
-      print "\tWARNING: there was a problem running script."
-      print "\tWARNING: the script and its output were left in %s and %s"%(sfn,lfn)
+      print("\tWARNING: there was a problem running script.")
+      print("\tWARNING: the script and its output were left in %s and %s"%(sfn,lfn))
       return "ERROR: could not create image"
 
 
@@ -97,7 +97,7 @@ def image(self,args,opts):
   fn = args[0]
   options = self.parse_options_str( opts )
 
-  url = urlparse.urlparse(fn)
+  url = urllib.parse.urlparse(fn)
   if url.scheme == '':
     url = url._replace(scheme='file')
 
@@ -127,7 +127,7 @@ def image(self,args,opts):
   if fn != lfn:
     # download the image
     with open(lfn,'wb') as lf:
-      f = urllib.urlopen(url)
+      f = urllib.request.urlopen(url)
       lf.write(f.read())
       f.close()
 
@@ -144,6 +144,7 @@ def shell(self,args,opts):
     subprocess.call( cmd, shell=True, stdout=fp )
     fp.seek(0)
     lines = fp.readlines()
+    lines = [ line.decode('utf-8') for line in lines if type(line) is bytes ]
 
   options = self.parse_options_str( opts )
   stdout = "".join( _filter_and_transform_lines(lines,options) )
@@ -170,8 +171,8 @@ def write(self,args,opts):
       fn = options['filename']
 
   if fn is None:
-    print "\tWARNING: no filename found in write macro."
-    print '\tWARNING: please specify a filename in the macro options with [filename="NAME"], where NAME is the name of the file to write.'
+    print("\tWARNING: no filename found in write macro.")
+    print('\tWARNING: please specify a filename in the macro options with [filename="NAME"], where NAME is the name of the file to write.')
     return None
 
   with open(fn,'w') as f:
@@ -206,7 +207,7 @@ def _filter_and_transform_lines( lines, options ):
     filt = options['filter']
     char = filt[0]
     pattern = filt.strip(char)
-    lines = filter( lambda line : re.search(pattern,line), lines )
+    lines = [line for line in lines if re.search(pattern,line)]
 
   if 'transform' in options:
     transforms = options['transform']
@@ -268,8 +269,6 @@ def _filter_and_transform_lines( lines, options ):
   elif 'n' in options:
     e = b+int(options['n'])-1
 
-
-
   return lines[b-1:e]
 
 
@@ -285,7 +284,7 @@ def _img( filename, output="markdown", fmt=None, opts="" ):
     return r'\includegraphics{./%s}'%filename
 
   if output == "html":
-    url = urlparse.urlparse(filename)
+    url = urllib.parse.urlparse(filename)
     if url.scheme == '':
       url = url._replace(scheme='file')
 
@@ -303,7 +302,7 @@ def _img( filename, output="markdown", fmt=None, opts="" ):
       fmt = os.path.splitext( filename )[-1][1:] # use extension for file format
 
     # we use urllib here so we can support specifying remote images
-    f = urllib.urlopen(url)
+    f = urllib.request.urlopen(url)
     code  = base64.b64encode(f.read())
     f.close()
     text  = r'''<img src="data:image/{fmt};base64,{code}" {opts}>'''.format(fmt=fmt,code=code,opts=opts)
