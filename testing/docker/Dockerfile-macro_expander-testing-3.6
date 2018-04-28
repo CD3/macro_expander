@@ -1,0 +1,8 @@
+FROM python:3.6-slim
+
+COPY requirements.txt ./
+RUN pip install $(cat requirements.txt)
+
+WORKDIR /home/testenv
+COPY test_repo.sh ./
+CMD ./test_repo.sh
