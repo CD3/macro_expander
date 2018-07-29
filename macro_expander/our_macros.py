@@ -131,7 +131,7 @@ def image(self,args,opts):
       lf.write(f.read())
       f.close()
 
-  return _img(ifn)
+  return _img(fn)
 
 includegraphics = image
 
@@ -197,6 +197,50 @@ def file(self,args,opts ):
 
 
 def _filter_and_transform_lines( lines, options ):
+  '''
+  filters and transforms a set of lines based on options.
+
+  lines is a list of strings. the result of applying each filter or transformation to this list is returned.
+
+  options:
+
+  filter : example -> filter="pattern"
+
+    this option specifies a regex pattern. lines matching that pattern are passed through. lines not matching
+    the pattern are removed.
+
+  transform : example -> transform="/pattern/replace/"
+
+    this option specifies a regex substition to perform on each line.
+
+  b : example -> b="10"
+
+    this option specifies the first line to pass through. all lines before this line are removed.
+    note that filter and transform happend *before* considering line numbers. so if a filter removes
+    lines from the input, the line numbers will differ.
+
+    it is also possible to give a pattern with an offset here, in which case the first line matching the pattern, plus the offset
+    is taken as the first line.
+
+    example -> b="/^line one/-1"
+
+    this will start on the line above the first line beginning with "line one"
+
+  e : example -> e="20"
+
+    this option specifies the last line to pass through. all lines after this line are removed.
+    note that filter and transform happen *before* considering line numbers. so if a filter removes
+    lines from the input, the line numbers will differ.
+
+    it is also possible to give a pattern with an offset here, in which case the first line, *after the beginning line*,
+    matching the pattern, plus the offset
+    is taken as the last line.
+
+    example -> e="/^last line/+1"
+
+    this will end on the line below the first line beginning with "last line" that comes after the beginning line.
+
+  '''
 
   line_number = Word(nums)
   line_offset = Word(nums+"+-")
