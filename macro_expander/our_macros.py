@@ -12,7 +12,13 @@ def example(self,args,opts):
   return "Processed by example handler."
 
 def mathimg(self,args,opts):
-  '''Create an image from LaTeX code and include it.'''
+  '''Create an image from LaTeX code and include it.
+  options:
+
+    tex2im_opts: a string containing command line options that will be passed directly to the tex2im command.
+    o : the output format. i.e. o='html' will produce an image that can be embedded in an html document.
+  
+  '''
 
   if len(args) < 1: # don't do anything if no argument was given
     return None
@@ -131,7 +137,14 @@ def image(self,args,opts):
       lf.write(f.read())
       f.close()
 
-  return _img(fn)
+  if 'o' in options:
+    options['output'] = options['o']
+  if 'output' in options:
+    output = options['output']
+  else:
+    output = "markdown"
+
+  return _img(fn,output=output)
 
 includegraphics = image
 
