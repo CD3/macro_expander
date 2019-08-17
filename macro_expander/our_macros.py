@@ -70,7 +70,7 @@ def scriptimg(self,args,opts):
 
 
   text = re.sub( "^\s*#!","#!",args[0] ) # strip off any whitespace before the shebang
-  hash = hashlib.sha1(text).hexdigest()
+  hash = hashlib.sha1(text.encode('utf-8')).hexdigest()
 
   sfn = "scriptimg-%s-script.txt"%hash
   ofn = "scriptimg-%s-image.png"%hash
