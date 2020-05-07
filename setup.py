@@ -3,7 +3,6 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
-import version
 
 here = path.abspath(path.dirname(__file__))
 
@@ -12,14 +11,17 @@ here = path.abspath(path.dirname(__file__))
     # long_description = f.read()
 long_description= ""
 
-print("version:",version.__version__)
 setup(
     name='macro_expander',
-    version=version.__version__,
+    license="MIT",
+    version="0.1.1",
     description='Expand macros within a text string. Somewhere between formatting and templating.',
-    long_description=long_description,  # Optional
     url='https://github.com/CD3/macro_expander',
     author='C.D. Clark III',
-    packages=["macro_expander"],
-    scripts=["./bin/expand-macros.py"],
+    packages=find_packages(),
+    install_requires=['pyparsing'],
+    entry_points='''
+    [console_scripts]
+    expand-macros.py=macro_expander.scripts.expand_macros:main
+    ''',
 )

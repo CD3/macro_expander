@@ -3,7 +3,7 @@
 from macro_expander import *
 import argparse
 
-if __name__ == "__main__":
+def main():
   parser = argparse.ArgumentParser(description='Processes macros in text.')
   parser.add_argument('input_file', help="File to be processed.")
   parser.add_argument('output_file', help="Name of file to write.")

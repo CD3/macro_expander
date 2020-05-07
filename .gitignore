@@ -7,3 +7,4 @@ dist/
 env/
 .pytest_cache/
 macro_expander.egg-info/
+_*/
