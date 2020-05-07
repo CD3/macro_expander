@@ -5,7 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 twine = "*"
-pytest
+pytest = "*"
+cram = "*"
 
 [packages]
 pyparsing = "*"
