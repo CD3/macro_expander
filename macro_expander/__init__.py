@@ -1,5 +1,3 @@
-'''Preprocess a markdown file by doing macro expansion an other things.'''
-
 # standard modules
 import sys, inspect
 import pprint
@@ -28,7 +26,7 @@ class MacroProcessor(object):
     self.args_delimiters = ('{','}')
     arguments = originalTextFor( nestedExpr( *self.args_delimiters ) )
 
-    self.macroParser = Combine( WordStart('\\') + Literal('\\') + name('name') + Optional(options('options')) + ZeroOrMore(arguments)('arguments') )
+    self.macroParser = Combine( WordStart('\\') + Literal('\\') + name('name') + Optional(options('options')) + OneOrMore(arguments)('arguments') )
     self.macroParser.setParseAction( self.expand )
 
     self.added_macros = {}
@@ -78,7 +76,7 @@ class MacroProcessor(object):
       handler = getattr(our_macros,name)
 
     replacement = None
-    nargs=len(inspect.getargspec( handler ).args)
+    nargs=len(inspect.signature( handler ).parameters)
     if nargs == 3:
       replacement = handler(self,arguments,options)
     elif nargs == 2:

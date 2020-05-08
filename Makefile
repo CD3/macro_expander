@@ -1,5 +1,6 @@
 test-install:
 	virtualenv _test-install-virtualenv
+	. _test-install-virtualenv/bin/activate && pip install pytest
 	. _test-install-virtualenv/bin/activate && pip install .
 
 build-package:
@@ -10,5 +11,5 @@ upload-package:
 
 run-tests:
 	make test-install
-	. _test-install-virtualenv/bin/activate && cd testing && pytest -s
+	. _test-install-virtualenv/bin/activate && cd testing && python -m pytest -s
 	. _test-install-virtualenv/bin/activate && cd testing && cram *.t

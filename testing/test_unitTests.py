@@ -8,6 +8,10 @@ with open("macros.py",'w') as f:
   text = r'''
 def example(self,args,opts):
   return "Processed by user-defined macro."
+def exampletwo(self,args,opts):
+  return "Processed by user-defined macro 2."
+def otherexample(args,opts):
+  return "Processed by other user-defined macro."
   '''
   f.write(text)
 
@@ -32,7 +36,7 @@ def test_parser(tmp_path):
   assert proc.process(r' \macro[a="A"]{argument1}{argument2} ') == r''' PROCESSED '''
   assert proc.process(r' \macro{argument1}{argument2} ') == r''' PROCESSED '''
   assert proc.process(r' \macro{argument1} ') == r''' PROCESSED '''
-  assert proc.process(r' \macro ') == r''' PROCESSED '''
+  assert proc.process(r' \macro{} ') == r''' PROCESSED '''
 
   assert proc.process(r' \numargs{a1} ') == r''' 1 '''
   assert proc.process(r' \numargs{a1}{a2} ') == r''' 2 '''
@@ -49,13 +53,16 @@ def test_macros(tmp_path):
   os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
-  assert proc.process("\shell{echo Hello World}").strip() == "Hello World"
+  assert proc.process(r"\shell{echo Hello World}").strip() == "Hello World"
   proc.addMacro("shell", lambda s,a,o : "PROCESSED")
-  assert proc.process("\shell{echo Hello World}").strip() == "PROCESSED"
-  assert proc.process("\example{trash}").strip() == "Processed by user-defined macro."
+  assert proc.process(r"\shell{echo Hello World}").strip() == "PROCESSED"
+  assert proc.process(r"\example{}").strip() == "Processed by user-defined macro."
+  assert proc.process(r"\exampletwo{}").strip() == "Processed by user-defined macro 2."
+  assert proc.process(r"\otherexample{}").strip() == "Processed by other user-defined macro."
   tmp = sys.modules['user_macros']
   del sys.modules['user_macros']
-  assert proc.process("\example{trash}").strip() == "Processed by example handler."
+  assert proc.process(r"\example{trash}").strip() == "Processed by example handler."
+  assert proc.process(r"\otherexample{trash}").strip() == r"\otherexample{trash}"
   sys.modules['user_macros'] = tmp
 
 def test_latex(tmp_path):
@@ -70,17 +77,17 @@ def test_shell(tmp_path):
 
   proc = macro_expander.MacroProcessor()
 
-  assert proc.process("\shell{echo Hello World}") == "Hello World\n"
-  assert proc.process("\shell{echo;echo Hello World}") == "\nHello World\n"
-  assert proc.process("\shell[lstrip]{echo;echo Hello World}") == "Hello World\n"
-  assert proc.process("\shell[rstrip]{echo;echo Hello World}") == "\nHello World"
-  assert proc.process("\shell[strip]{echo;echo Hello World}") == "Hello World"
+  assert proc.process(r"\shell{echo Hello World}") == "Hello World\n"
+  assert proc.process(r"\shell{echo;echo Hello World}") == "\nHello World\n"
+  assert proc.process(r"\shell[lstrip]{echo;echo Hello World}") == "Hello World\n"
+  assert proc.process(r"\shell[rstrip]{echo;echo Hello World}") == "\nHello World"
+  assert proc.process(r"\shell[strip]{echo;echo Hello World}") == "Hello World"
 
 def test_write(tmp_path):
   os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
-  assert proc.process('\write[filename="write_macro.out"]{test}') == ""
+  assert proc.process(r'\write[filename="write_macro.out"]{test}') == ""
   with open("write_macro.out") as f:
     assert f.read() == "test"
 
@@ -89,7 +96,7 @@ def test_img(tmp_path):
   proc = macro_expander.MacroProcessor()
 
   assert macro_expander.our_macros._img("file.png",output="markdown") == "![](./file.png)"
-  assert macro_expander.our_macros._img("file.png",output="latex") == "\includegraphics{./file.png}"
+  assert macro_expander.our_macros._img("file.png",output="latex") == r"\includegraphics{./file.png}"
 
 def test_file(tmp_path):
   os.chdir(tmp_path)
