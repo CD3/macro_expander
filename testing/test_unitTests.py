@@ -13,7 +13,8 @@ def example(self,args,opts):
 
 import macro_expander
 
-def test_parser():
+def test_parser(tmp_path):
+  os.chdir(tmp_path)
 
   def macro(self,args,opts):
     return "PROCESSED"
@@ -44,7 +45,8 @@ def test_parser():
   assert proc.process(r' \numopts[a="A" , b="B"]{a1} ') == r''' 2 '''
   assert proc.process(r' \numopts[a ="A", b= "B"]{a1} ') == r''' 2 '''
 
-def test_macros():
+def test_macros(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
   assert proc.process("\shell{echo Hello World}").strip() == "Hello World"
@@ -56,13 +58,16 @@ def test_macros():
   assert proc.process("\example{trash}").strip() == "Processed by example handler."
   sys.modules['user_macros'] = tmp
 
-def test_latex():
+def test_latex(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
   assert proc.process(r"\frac{1}{2}") == r"\frac{1}{2}"
   assert proc.process(r"\frac{{1}}{{2}}") == r"\frac{{1}}{{2}}"
 
-def test_shell():
+def test_shell(tmp_path):
+  os.chdir(tmp_path)
+
   proc = macro_expander.MacroProcessor()
 
   assert proc.process("\shell{echo Hello World}") == "Hello World\n"
@@ -71,21 +76,23 @@ def test_shell():
   assert proc.process("\shell[rstrip]{echo;echo Hello World}") == "\nHello World"
   assert proc.process("\shell[strip]{echo;echo Hello World}") == "Hello World"
 
-def test_write():
+def test_write(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
   assert proc.process('\write[filename="write_macro.out"]{test}') == ""
   with open("write_macro.out") as f:
     assert f.read() == "test"
 
-def test_img():
-
+def test_img(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
   assert macro_expander.our_macros._img("file.png",output="markdown") == "![](./file.png)"
   assert macro_expander.our_macros._img("file.png",output="latex") == "\includegraphics{./file.png}"
 
-def test_file():
+def test_file(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
   with open("file1.txt","w") as f:
@@ -112,11 +119,13 @@ def test_file():
   assert proc.process(r"\file[transform=/two/three/,transform=/line/text/]{file1.txt}") == "text one\ntext three\ntext three\ntext four\n"
   assert proc.process(r"\file[transform=/line//]{file1.txt}") == " one\n two\n three\n four\n"
 
-def test_mathimg_macro():
+def test_mathimg_macro(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
   proc.process(r"\mathimg{\nabla \rho = 0}")
 
-def test_shell_macro():
+def test_shell_macro(tmp_path):
+  os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
   proc.process(r"\shell{ls}")
 

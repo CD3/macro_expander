@@ -10,5 +10,5 @@ upload-package:
 
 run-tests:
 	make test-install
-	. _test-install-virtualenv/bin/activate && cd testing && pytest
+	. _test-install-virtualenv/bin/activate && cd testing && pytest -s
 	. _test-install-virtualenv/bin/activate && cd testing && cram *.t
