@@ -16,3 +16,18 @@
   $ expand-macros.py input.md.t input.md > /dev/null
   $ cat input.md
   Coulomb's Law: <img src="data:image/png;base64,.*" > (re)
+  $ rm input.md
+  $ expand-macros.py -c input.md.t input.md > /dev/null
+  $ cat input.md
+  Coulomb's Law: <img src="data:image/png;base64,.*" > (re)
+  $ test -f expand-macros.cache
+  $ rm input.md
+  $ expand-macros.py -c input.md.t input.md > /dev/null
+  $ cat input.md
+  Coulomb's Law: <img src="data:image/png;base64,.*" > (re)
+  $ rm input.md
+  $ expand-macros.py -c -f mycache.txt input.md.t input.md > /dev/null
+  $ cat input.md
+  Coulomb's Law: <img src="data:image/png;base64,.*" > (re)
+  $ test -f expand-macros.cache
+  $ test -f mycache.txt

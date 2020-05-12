@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import os,sys,pprint
+import os,sys,pprint,pathlib
 
 if os.path.exists("macros.py"):
   os.remove("macros.py")
@@ -135,4 +135,53 @@ def test_shell_macro(tmp_path):
   os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
   proc.process(r"\shell{ls}")
+
+
+def test_macro_in_middle(tmp_path):
+  os.chdir(tmp_path)
+  proc = macro_expander.MacroProcessor()
+  assert proc.process(r"Preamble| \example{} |Postamble").strip() == "Preamble| Processed by user-defined macro. |Postamble"
+
+def test_caching(tmp_path):
+  os.chdir(tmp_path)
+  def macro(self,args,opts):
+    return "PROCESSED"
+
+  def numargs(self,args,opts):
+    return str(len(args))
+
+  def countopts(self,args,opts):
+    return str(len(self.parse_options_str(opts)))
+
+  proc = macro_expander.MacroProcessor()
+  proc.addMacro( 'macro', macro )
+  proc.addMacro( 'numargs', numargs)
+  proc.addMacro( 'numopts', countopts)
+
+  assert len(proc.cache) == 0
+  proc.process(r' \macro{} ')
+  assert len(proc.cache) == 0
+
+  proc.use_cache = True
+
+  proc.process(r' \macro{} ')
+  assert len(proc.cache) == 1
+  assert list(proc.cache.keys())[0] == r'\macro{}'
+  proc.clearCache()
+  assert len(proc.cache) == 0
+  proc.process(r' \macro{} ')
+  assert len(proc.cache) == 1
+
+  proc.writeCache("tmp.cache")
+  proc.clearCache()
+  assert len(proc.cache) == 0
+
+  assert pathlib.Path("tmp.cache").is_file()
+
+  proc.readCache("tmp.cache")
+
+  assert len(proc.cache) == 1
+  assert list(proc.cache.keys())[0] == r'\macro{}'
+
+
 
