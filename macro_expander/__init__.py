@@ -32,6 +32,7 @@ class MacroProcessor(object):
     arguments = originalTextFor( nestedExpr( *self.args_delimiters ) )
 
     self.macroParser = Combine( WordStart('\\') + Literal('\\') + name('name') + Optional(options('options')) + OneOrMore(arguments)('arguments') )
+    self.macroParser.parseWithTabs()
 
     self.added_macros = {}
 
@@ -80,7 +81,7 @@ class MacroProcessor(object):
       last_i = 0
       for r in results:
         parts.append(text[last_i:r[1]])
-        parts.append( (text[r[1]:r[2]],r[0])  )
+        parts.append(r[0])
         last_i = r[2]
       parts.append(text[last_i:])
 
@@ -96,20 +97,19 @@ class MacroProcessor(object):
     return text
 
   def _process_part(self,part):
-    if isinstance(part,tuple):
-      replace = self.expand(part[0],0,part[1])
+    if isinstance(part,ParseResults):
+      replace = self.expand(part)
       if replace is None:
         return part[0]
       return replace
 
     return part
 
-  def expand(self,match,loc,toks):
+  def expand(self,toks):
     '''This function is called to expand a macro that has been parsed by pyparsing.
-       It will recieve the matched elements as a dict in the toks argument. The original string, and
-       its location in the text are also padded (i.e., this function can be used as a parseAction). The macro name
-       of the macro that was found will be in toks["name"]. The macro options and arguments will
-       be in toks["options"] and toks["arguments"].
+       It will recieve the matched elements as a dict in the toks argument.
+       The macro name of the macro that was found will be in toks["name"]. The macro options and arguments will
+       be in toks["options"] and toks["arguments"]. The original text that was matched will be in toks[0]
        
        It should process the macro and return the text that will replace it, or None.
 
@@ -117,8 +117,8 @@ class MacroProcessor(object):
        the cached value will be used for expansion.
        '''
 
-    if self.use_cache and match in self.cache:
-      return self.cache[match]
+    if self.use_cache and toks[0] in self.cache:
+      return self.cache[toks[0]]
 
     name = str(toks.name)
     # options and arguments are nested expressions. the token we get
@@ -150,7 +150,7 @@ class MacroProcessor(object):
       replacement = handler(arguments)
 
     if self.use_cache:
-      self.cache[match] = replacement
+      self.cache[toks[0]] = replacement
 
 
     return replacement

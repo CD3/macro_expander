@@ -49,11 +49,15 @@ def test_parser(tmp_path):
   assert proc.process(r' \numopts[a="A" , b="B"]{a1} ') == r''' 2 '''
   assert proc.process(r' \numopts[a ="A", b= "B"]{a1} ') == r''' 2 '''
 
+  assert proc.process('\tpre:\macro{}:post') == '''\tpre:PROCESSED:post'''
+
 def test_macros(tmp_path):
   os.chdir(tmp_path)
   proc = macro_expander.MacroProcessor()
 
-  assert proc.process(r"\shell{echo Hello World}").strip() == "Hello World"
+  assert proc.process(r"\shell{echo ' Hello World '}") == " Hello World \n"
+  assert proc.process(r"\shell[strip]{echo ' Hello World '}") == "Hello World"
+  assert proc.process(r"q1.1 \shell[strip]{echo ' Hello World '}") == "q1.1 Hello World"
   proc.addMacro("shell", lambda s,a,o : "PROCESSED")
   assert proc.process(r"\shell{echo Hello World}").strip() == "PROCESSED"
   assert proc.process(r"\example{}").strip() == "Processed by user-defined macro."
