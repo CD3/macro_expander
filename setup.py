@@ -14,7 +14,7 @@ long_description= ""
 setup(
     name='macro_expander',
     license="MIT",
-    version="0.2.0",
+    version="0.2.1",
     description='Expand macros within a text string. Somewhere between formatting and templating.',
     url='https://github.com/CD3/macro_expander',
     author='C.D. Clark III',
