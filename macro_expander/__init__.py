@@ -21,18 +21,20 @@ try:
 except:
   import pickle
 
+class MacroParser:
+    name = Word(alphas)
+    opts_delimiters = ('[',']')
+    options = originalTextFor( nestedExpr( *opts_delimiters ) )
+    args_delimiters = ('{','}')
+    arguments = originalTextFor( nestedExpr( *args_delimiters ) )
 
-class MacroProcessor(object):
+    macro = Combine( WordStart('\\') + Literal('\\') + name('name') + Optional(options('options')) + OneOrMore(arguments)('arguments') )
+    macro.parseWithTabs()
+
+class MacroProcessor:
   def __init__(self,use_cache=False):
     # define macro grammer
-    name = Word(alphas)
-    self.opts_delimiters = ('[',']')
-    options = originalTextFor( nestedExpr( *self.opts_delimiters ) )
-    self.args_delimiters = ('{','}')
-    arguments = originalTextFor( nestedExpr( *self.args_delimiters ) )
-
-    self.macroParser = Combine( WordStart('\\') + Literal('\\') + name('name') + Optional(options('options')) + OneOrMore(arguments)('arguments') )
-    self.macroParser.parseWithTabs()
+    self.macroParser = MacroParser.macro
 
     self.added_macros = {}
 
@@ -77,16 +79,25 @@ class MacroProcessor(object):
       # benchmarks indicate that this is actually fater than using pyparsing's transformString
       # and it allows for macro expansion to be done in parallel.
       results = self.macroParser.scanString( text )
-      parts = []
+      output_parts = []
+      parsed_macros = []
+      macro_part_mapping = []
       last_i = 0
       for r in results:
-        parts.append(text[last_i:r[1]])
-        parts.append(r[0])
+        output_parts.append(text[last_i:r[1]])
+        parsed_macros.append(r[0])
+        macro_part_mapping.append(len(output_parts))
+        output_parts.append("<PLACEHOLDER>")
         last_i = r[2]
-      parts.append(text[last_i:])
+      output_parts.append(text[last_i:])
 
-      # now process all of the parts, performing macro expansion on the macros that have been parsed.
-      newtext = "".join([self._process_part(p) for p in parts])
+      # process all of the macros
+      expanded_macros = map(self._expand_macro, parsed_macros)
+
+      for i,e in enumerate(expanded_macros):
+        output_parts[macro_part_mapping[i]] = e
+
+      newtext = "".join(output_parts)
 
 
       if newtext == text or repeat == False:
@@ -96,20 +107,11 @@ class MacroProcessor(object):
 
     return text
 
-  def _process_part(self,part):
-    if isinstance(part,ParseResults):
-      replace = self.expand(part)
-      if replace is None:
-        return part[0]
-      return replace
-
-    return part
-
-  def expand(self,toks):
+  def _expand_macro(self,parsed_toks):
     '''This function is called to expand a macro that has been parsed by pyparsing.
-       It will recieve the matched elements as a dict in the toks argument.
-       The macro name of the macro that was found will be in toks["name"]. The macro options and arguments will
-       be in toks["options"] and toks["arguments"]. The original text that was matched will be in toks[0]
+       It will recieve the matched elements as a dict in the parsed_toks argument.
+       The macro name of the macro that was found will be in parsed_toks["name"]. The macro options and arguments will
+       be in parsed_toks["options"] and parsed_toks["arguments"]. The original text that was matched will be in parsed_toks[0]
        
        It should process the macro and return the text that will replace it, or None.
 
@@ -117,15 +119,15 @@ class MacroProcessor(object):
        the cached value will be used for expansion.
        '''
 
-    if self.use_cache and toks[0] in self.cache:
-      return self.cache[toks[0]]
+    if self.use_cache and parsed_toks[0] in self.cache:
+      return self.cache[parsed_toks[0]]
 
-    name = str(toks.name)
+    name = str(parsed_toks.name)
     # options and arguments are nested expressions. the token we get
     # will be wrapped in [] (for options) and {} (for arguments), so we need
     # to strip them off.
-    options   = toks.options[len(self.opts_delimiters[0]):-len(self.opts_delimiters[1])]
-    arguments = [   argument[len(self.args_delimiters[0]):-len(self.args_delimiters[1])] for argument in toks.arguments]
+    options   = parsed_toks.options[len(MacroParser.opts_delimiters[0]):-len(MacroParser.opts_delimiters[1])]
+    arguments = [   argument[len(MacroParser.args_delimiters[0]):-len(MacroParser.args_delimiters[1])] for argument in parsed_toks.arguments]
 
 
     # Order matters here. The first handler found will be used. Handlers are
@@ -149,9 +151,12 @@ class MacroProcessor(object):
     elif nargs == 1:
       replacement = handler(arguments)
 
-    if self.use_cache:
-      self.cache[toks[0]] = replacement
+    if replacement is None:
+      return parsed_toks[0]
 
+    if self.use_cache:
+      self.cache[parsed_toks[0]] = replacement
+    
 
     return replacement
 
