@@ -49,7 +49,7 @@ def test_parser(tmp_path):
   assert proc.process(r' \numopts[a="A" , b="B"]{a1} ') == r''' 2 '''
   assert proc.process(r' \numopts[a ="A", b= "B"]{a1} ') == r''' 2 '''
 
-  assert proc.process('\tpre:\macro{}:post') == '''\tpre:PROCESSED:post'''
+  assert proc.process('\tpre:\\macro{}:post') == '''\tpre:PROCESSED:post'''
 
 def test_macros(tmp_path):
   os.chdir(tmp_path)
@@ -63,11 +63,6 @@ def test_macros(tmp_path):
   assert proc.process(r"\example{}").strip() == "Processed by user-defined macro."
   assert proc.process(r"\exampletwo{}").strip() == "Processed by user-defined macro 2."
   assert proc.process(r"\otherexample{}").strip() == "Processed by other user-defined macro."
-  tmp = sys.modules['user_macros']
-  del sys.modules['user_macros']
-  assert proc.process(r"\example{trash}").strip() == "Processed by example handler."
-  assert proc.process(r"\otherexample{trash}").strip() == r"\otherexample{trash}"
-  sys.modules['user_macros'] = tmp
 
 def test_latex(tmp_path):
   os.chdir(tmp_path)
