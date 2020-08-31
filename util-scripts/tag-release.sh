@@ -3,6 +3,13 @@
 tag=$1
 shift
 
+if [[ -n $(git status --porcelain) ]]
+then
+  echo "ERROR: working directory is not clean"
+  echo "commit all changes and try again."
+  exit 1
+fi
+
 if [[ -z $tag ]]
 then
   echo "ERROR: version number required"
@@ -26,13 +33,14 @@ echo "cd'ing to root directory ($root)"
 cd $root
 
 echo "looking for pre-tag-release.sh to run"
-script=$(find ./ -name 'pre-tag-release.sh')
-if [[ -n $script ]]
-then
-  ${script} "${tag}"
-fi
+script=$(find ./ -path ./externals -prune -o -name 'pre-tag-release.sh' -print)
+[[ $script != "" ]] && echo "Found: $script" && $script
+[[ $script != "" ]] || echo "Did NOT find a script to run."
 
 echo "tagging with ${tag}"
-git tag ${tag}
+sed -i "s|version\s*=\s*['\"][^'\"]\+['\"]|version = '${tag}'|" ./setup.py
+git add setup.py
+git commit -m "houskeeping: update version number in setup.py"
+git tag -a ${tag}
 git tag | grep ${tag}
 echo "Successfully tagged commit."
