@@ -1,5 +1,5 @@
   $ which expand-macros.py
-  .*/_test-install-virtualenv/bin/expand-macros.py (re)
+  .*/_devel-install-virtualenv/bin/expand-macros.py (re)
   $ cat << EOF > input.md.t
   > \shell{echo -n "Hello World"}
   > EOF

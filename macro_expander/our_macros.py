@@ -1,4 +1,4 @@
-import os, re, subprocess, tempfile, urllib.parse, urllib.request, urllib.parse, urllib.error, base64, hashlib
+import os, re, subprocess, tempfile, urllib.parse, urllib.request, urllib.parse, urllib.error, base64, hashlib, pathlib
 from pyparsing import *
 
 def example(self,args,opts):
@@ -35,20 +35,23 @@ def mathimg(self,args,opts):
   print('%s'%cmd)
   # create a hash of the command used to create the image to use as the image
   # name. this way we can tell if the image has already been created before.
+  scratch_dir = pathlib.Path("_macro_expander-scratch")
+  if not scratch_dir.exists():
+    scratch_dir.mkdir()
   hash = hashlib.sha1(cmd.encode('utf-8')).hexdigest()
-  ofn = "mathimg-%s-image.png"%hash
-  lfn = "mathimg-%s-image.log"%hash
-  cmd = cmd%ofn
+  ofn = scratch_dir/f"mathimg-{hash}-image.png"
+  lfn = scratch_dir/f"mathimg-{hash}-image.log"
+  cmd = cmd%str(ofn)
   print("creating image with:'"+cmd+"'")
-  if os.path.exists(ofn):
-    print("\tskipping because '"+ofn+"' already exists. please delete it if you want to force a rebuild.")
+  if ofn.exists():
+    print(f"\tskipping because '{str(ofn)}' already exists. please delete it if you want to force a rebuild.")
   else:
-    with open(lfn,'w') as f:
+    with lfn.open('w') as f:
       status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
       if status != 0:
-        print("\tWARNING: there was a problem running tex2im.")
-        print("\tWARNING: command output was left in %s"%(lfn))
-        print("\tWARNING: replacing with $...$, which may not work...")
+        print(f"\tWARNING: there was a problem running tex2im.")
+        print(f"\tWARNING: command output was left in {str(lfn)}")
+        print(f"\tWARNING: replacing with $...$, which may not work...")
         return "$"+args[0]+"$"
 
   if 'o' in options:
@@ -58,7 +61,7 @@ def mathimg(self,args,opts):
   else:
     output= "markdown"
 
-  return _img(ofn,output=output)
+  return _img(str(ofn),output=output)
 
 def scriptimg(self,args,opts):
   '''Create an image by running a script and include it.'''
@@ -72,20 +75,23 @@ def scriptimg(self,args,opts):
   text = re.sub( "^\s*#!","#!",args[0] ) # strip off any whitespace before the shebang
   hash = hashlib.sha1(text.encode('utf-8')).hexdigest()
 
-  sfn = "scriptimg-%s-script.txt"%hash
-  ofn = "scriptimg-%s-image.png"%hash
-  lfn = "scriptimg-%s-image.log"%hash
+  scratch_dir = pathlib.Path("_macro_expander-scratch")
+  if not scratch_dir.exists():
+    scratch_dir.mkdir()
+  sfn = scratch_dir/f"scriptimg-{hash}-script.txt"
+  ofn = scratch_dir/f"scriptimg-{hash}-image.png"
+  lfn = scratch_dir/f"scriptimg-{hash}-image.log"
 
-  with open(sfn,'w') as f:
+  with sfn.open('w') as f:
     f.write(text)
 
-  cmd = "chmod +x %s; ./%s; mv out.png %s"%(sfn,sfn,ofn)
-  print("creating image from script with:'"+cmd+"'")
-  with open(lfn,'w') as f:
+  cmd = f"chmod +x {str(sfn)}; ./{str(sfn)}; mv out.png {str(ofn)}"
+  print(f"creating image from script with:'{cmd}'")
+  with lfn.open('w') as f:
     status = subprocess.call(cmd,shell=True,stdout=f,stderr=f)
     if status != 0:
-      print("\tWARNING: there was a problem running script.")
-      print("\tWARNING: the script and its output were left in %s and %s"%(sfn,lfn))
+      print(f"\tWARNING: there was a problem running script.")
+      print(f"\tWARNING: the script and its output were left in {str(sfn)} and {str(lfn)}")
       return "ERROR: could not create image"
 
 
@@ -96,7 +102,7 @@ def scriptimg(self,args,opts):
   else:
     output= "markdown"
 
-  return _img(ofn,output=output)
+  return _img(str(ofn),output=output)
 
 def image(self,args,opts):
   '''Insert a (possibly remote) image.'''
@@ -144,7 +150,7 @@ def image(self,args,opts):
   else:
     output = "markdown"
 
-  return _img(fn,output=output)
+  return _img(str(fn),output=output)
 
 includegraphics = image
 
