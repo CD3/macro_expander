@@ -9,3 +9,4 @@ env/
 macro_expander.egg-info/
 _*/
 requirements-dev.lock
+testing/expand-macros-cli-tests-mathimg.t.err
