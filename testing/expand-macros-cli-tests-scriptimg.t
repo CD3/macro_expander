@@ -1,5 +1,3 @@
-  $ which expand-macros.py
-  .*/_devel-install-virtualenv/bin/expand-macros.py (re)
   $ text=$(cat << EOF
   > #! $(which gnuplot)
   > set term png

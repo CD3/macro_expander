@@ -1,6 +1,6 @@
 [project]
 name = "macro-expander"
-version = "0.1.0"
+version = "0.4.0"
 description = "Expand macros within a text string. Somewhere between formatting and templating."
 dependencies = [
     "pyparsing>=3.1.4",
@@ -20,6 +20,7 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
     "pytest>=8.3.2",
+    "cram>=0.7",
 ]
 
 [tool.hatch.metadata]

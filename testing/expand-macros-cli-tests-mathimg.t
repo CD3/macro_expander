@@ -1,5 +1,3 @@
-  $ which expand-macros.py
-  .*/_devel-install-virtualenv/bin/expand-macros.py (re)
   $ eq="\vec{F} = \frac{k q_1 q_2}{r^2} \hat{r}"
   $ cat << EOF > input.md.t
   > Coulomb's Law: \mathimg{$eq}

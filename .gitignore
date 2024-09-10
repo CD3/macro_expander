@@ -8,3 +8,4 @@ env/
 .pytest_cache/
 macro_expander.egg-info/
 _*/
+requirements-dev.lock
