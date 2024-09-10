@@ -1,0 +1,28 @@
+[project]
+name = "macro-expander"
+version = "0.1.0"
+description = "Expand macros within a text string. Somewhere between formatting and templating."
+dependencies = [
+    "pyparsing>=3.1.4",
+]
+readme = "README.md"
+requires-python = ">= 3.5"
+
+[project.scripts]
+"expand-macros" = "macro_expander.scripts.expand_macros:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.3.2",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/macro_expander"]

@@ -72,7 +72,7 @@ def scriptimg(self,args,opts):
   options = self.parse_options_str( opts )
 
 
-  text = re.sub( "^\s*#!","#!",args[0] ) # strip off any whitespace before the shebang
+  text = re.sub( r"^\s*#!","#!",args[0] ) # strip off any whitespace before the shebang
   hash = hashlib.sha1(text.encode('utf-8')).hexdigest()
 
   scratch_dir = pathlib.Path("_macro_expander-scratch")
