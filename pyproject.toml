@@ -10,6 +10,7 @@ requires-python = ">= 3.5"
 
 [project.scripts]
 "expand-macros" = "macro_expander.scripts.expand_macros:main"
+"expand-macros.py" = "macro_expander.scripts.expand_macros:main" # backward compatibility
 
 [build-system]
 requires = ["hatchling"]
