@@ -28,7 +28,6 @@ If we run
 $ expand-macros.py input.txt output.txt
 ```
 The `expand-macros.py` script will find the `shell` macro, run the command(s) inside the `{}`, and replace it with the output of the commands, producing something like
-```
 The `ls` command is used to list the files and directories in a directory. For example, running `ls` in your home directory will produce output similar to this:
 ```
 $ ls
