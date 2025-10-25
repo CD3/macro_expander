@@ -1,3 +1,3 @@
 test:
-  cd testing && rye run pytest
-  cd testing && rye run cram *.t
+    cd testing && uv run pytest
+    cd testing && uv run cram *.t
